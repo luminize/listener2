@@ -9,7 +9,23 @@ from trajectory_msgs.msg import JointTrajectory
 #from ros_pb2 import *
 import ros_pb2
 from machinekit import hal
+import random
+'''
+minpos = -10.0
+maxpos = 10.0
 
+minvel = 0.0
+maxvel = 0.0
+
+minacc = 0.0
+maxacc = 0.0
+
+mineffort = 0.0
+maxeffort = 2.0
+
+minsegtime = 1.5
+maxsegtime = 0.5
+'''
 # print ring properties
 def print_ring(r):
     print 'information on the ring:'
@@ -30,11 +46,39 @@ print '\navailable rings in HAL: \n   ', rings, '\n'
 # Global variable for ring handle
 r = 0
 n = 0
+'''
+prev = 5
+ts = 0
+'''
 #p = 0
 #tp = None
 
-def callback(data):
+'''
+    global n
+    global prev
+    global ts
+    while n<prev:
+        tp = ros_pb2.JointTrajectoryPoint()
+        tp.positions.append(random.uniform(minpos, maxpos))
+        tp.velocities.append(random.uniform(minvel, maxvel))
+        tp.accelerations.append(random.uniform(minacc, maxacc))
+        tp.effort.append(random.uniform(mineffort, maxeffort))
+        segtime = random.uniform(minsegtime, maxsegtime)
+        ts += segtime
 
+        tp.time_from_start = ts
+        tp.serial = n
+
+        print str(tp)
+        buffer = tp.SerializeToString()
+        while not r.write(buffer):
+            time.sleep(0.1)
+            # print "waiting - ring full"
+        n += 1
+    prev += n
+'''
+
+def callback(data):
     print 'In callback'
     global n
     global r
@@ -60,9 +104,9 @@ def callback(data):
         #print ('serial     : %i' % tp.serial)
         prev_point_time = point_time
 
-        tp.positions.append(pose.positions[0])
-        tp.velocities.append(pose.velocities[0])
-        tp.accelerations.append(pose.accelerations[0])
+        tp.positions.append(float(pose.positions[0]))
+        tp.velocities.append(float(pose.velocities[0]))
+        tp.accelerations.append(float(pose.accelerations[0]))
         tp.effort.append(0.0)
 #        for j in range(len(pose.positions)):
 #            tp.positions.append(pose.positions[j])
@@ -85,7 +129,7 @@ def callback(data):
         r.write(buffer)
         n += 1 #increase serial
         tmp += 1
-
+#'''
 
 def listener2():
 
