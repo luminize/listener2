@@ -42,6 +42,7 @@ def callback(data):
     tmp = 0
     for pose in data.points:
         tp = ros_pb2.JointTrajectoryPoint()
+#        tp = JointTrajectoryPoint()
 #        print pose.time_from_start
 #        print ["P: {0:0.2e}".format(i) for i in pose.positions]
 #        print ["V: {0:0.2e}".format(i) for i in pose.velocities]
@@ -53,26 +54,34 @@ def callback(data):
 
         tp.time_from_start = point_time
         tp.duration = point_time - prev_point_time
-        tp.serial = int(n)
-        print ('point time : %f' % tp.time_from_start)
-        print ('duration   : %f' % tp.duration)
-        print ('serial     : %i' % tp.serial)
+        tp.serial = n
+        #print ('point time : %f' % tp.time_from_start)
+        #print ('duration   : %f' % tp.duration)
+        #print ('serial     : %i' % tp.serial)
         prev_point_time = point_time
 
-        for j in range(len(pose.positions)):
-            tp.positions.append(pose.positions[j])
-            tp.velocities.append(pose.velocities[j])
-            tp.accelerations.append(pose.accelerations[j])
-            print pose.effort
-            if not pose.effort:
-                effort = 0.0
-            else:
-                effort = pose.effort[j]
-            tp.effort.append(effort)
-        print tp
+        tp.positions.append(pose.positions[0])
+        tp.velocities.append(pose.velocities[0])
+        tp.accelerations.append(pose.accelerations[0])
+        tp.effort.append(0.0)
+#        for j in range(len(pose.positions)):
+#            tp.positions.append(pose.positions[j])
+#            tp.velocities.append(pose.velocities[j])
+#            tp.accelerations.append(pose.accelerations[j])
+#            tp.velocities.append(0.0)
+#            tp.accelerations.append(0.0)
+#            print pose.effort
+#            if not pose.effort:
+#                effort = 0.0
+#            else:
+#                effort = pose.effort[j]
+#            tp.effort.append(effort)
+        print str(tp)
 
         buffer = tp.SerializeToString()
         # put the point in the ring
+        #while not r.write(buffer):
+        #    time.sleep(0.1)
         r.write(buffer)
         n += 1 #increase serial
         tmp += 1
@@ -81,10 +90,10 @@ def callback(data):
 def listener2():
 
     rospy.init_node('listener2', anonymous=True)
-    if "joint_interpolator.traj" in rings:
+    if "ip.traj" in rings:
         # attach to existing ring
         global r
-        r = hal.Ring("joint_interpolator.traj")
+        r = hal.Ring("ip.traj")
         # see what we have
         print_ring(r)
 
